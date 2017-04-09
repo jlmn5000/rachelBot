@@ -67,15 +67,25 @@ def socSvr():
         command  = (b.recv())
         print (command)
         if command == 'exit':
+          server_close()
           break
+        self.wfile.write(command)
+        print "this is the line before self.rfile.read"
+        response = "."
+        response = self.rfile.read(8)
+        print "this is the line after self.rfile.read"
+        if response == "received":
+          print "robot acknowledged response"
         else:
-          self.wfile.write(command)
-          
+          print "robot did not acknowlege response"
+      
       self.wfile.write('Goodbye Robot!\n"')
       #self.allow_reuse_address = True
 
   server = SocketServer.TCPServer( ("", 23000), hwRequestHandler )
-  server.serve_forever()
+  #server.serve_forever()
+  server.handle_request()
+  server.timeout(10)
 
 def robotCmd():
   print ('robotCmd called')
