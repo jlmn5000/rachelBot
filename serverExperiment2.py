@@ -62,6 +62,7 @@ def webSvr():
 def socSvr():
   restarts = 0
   allowedRestarts = 0
+  allowedResponseTries = 2
   while restarts <= allowedRestarts:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print "starting socSvr, restarts: %s" % restarts
@@ -76,17 +77,22 @@ def socSvr():
         time.sleep(2)
       else:
         print "socSvr connected by ", addr
-        command = (b.recv())
-        conn.sendall(command)
         while 1:
-          try:
-            response = conn.recv(8)
-          except:
-            print "no response from robot"
-            time.sleep(2)
-          else:
-            print "robot responded: %s" % response
-            break
+          command = (b.recv())
+          conn.sendall(command)
+          responseTries = 0
+          while responseTries <= allowedResponseTries + 1:
+            try:
+              conn.setblocking(0)
+              response = conn.recv(8)
+            except:
+              print "except - no response from robot"
+              time.sleep(2)
+              responseTries = responseTries + 1
+            else:
+              print "robot responded: %s" % response
+              break
+    print "closing connection to robot"
     conn.close()
     restarts = restarts + 1
   print "socSvr allowed restarts exceeded. not restarting socSvr"
